@@ -1,0 +1,41 @@
+schema_version: "1.0"
+profile_id: cyberdog2
+profile_version: "0.1.0"
+platform:
+  architecture: aarch64
+  os_release: "18.04"
+  ros_distro: galactic
+  python_major_minor: "3.6"
+source_workspace: /SDCARD/uran_ws
+deployment_root: /SDCARD/URAN
+identity:
+  device_id: device_001
+  template_id: template_001
+  tenant_id: default
+components:
+  - component_id: base
+    kind: base
+    motion_instance: cyberdog2_motion
+  - component_id: communication
+    kind: service
+    instance: mqtt_transport
+  - component_id: media
+    kind: service
+    instance: media_transport
+motion:
+  backend: cyberdog2_ros2
+  namespace: /mi_desktop_48_b0_2d_5f_b6_d0
+media:
+  default_protocol: webrtc
+  active_channels:
+    - front_cam
+    - cyberdog_main
+  deferred_channels:
+    - realsense_left
+    - realsense_right
+    - realsense_depth
+    - realsense_aligned
+    - realsense_aligned_rgb
+security:
+  credentials_source: original_workspace_network_yaml
+  secrets_file: config/secrets.env

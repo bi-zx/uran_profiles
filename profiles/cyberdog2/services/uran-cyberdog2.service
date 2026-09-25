@@ -1,0 +1,21 @@
+[Unit]
+Description=URAN CyberDog2 profile runtime
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mi
+Group=mi
+WorkingDirectory=/SDCARD/URAN/current
+Environment=HOME=/home/mi
+Environment=PYTHONUNBUFFERED=1
+Environment=ROS_DOMAIN_ID=42
+EnvironmentFile=-/SDCARD/URAN/current/config/secrets.env
+ExecStart=/SDCARD/URAN/current/runtime/bin/start-cyberdog2.sh
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+
+[Install]
+WantedBy=multi-user.target

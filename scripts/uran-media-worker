@@ -1,0 +1,5 @@
+#!/bin/bash
+set -eu
+. "$(dirname "$0")/worker-env.sh"
+export PYTHONPATH="$URAN_ROOT/source/uran_plugins/media/src:$PYTHONPATH"
+exec /usr/bin/python3 -m uran_worker_sdk uran_media_plugin.worker:worker_factory

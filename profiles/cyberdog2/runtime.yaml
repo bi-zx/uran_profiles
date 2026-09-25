@@ -1,0 +1,138 @@
+# This file is consumed after it is copied below /SDCARD/URAN/current.
+# Keep credentials out of this file. MqttClient reads the environment names.
+default_device_id: device_001
+primary_protocol_instance: mqtt_transport
+plugin_manifests:
+  - /SDCARD/URAN/current/install/framework/share/uran_framework/plugins/worker/plugin.json
+plugins:
+  - instance_id: mqtt_transport
+    device_id: device_001
+    component_id: communication
+    plugin_type: protocol
+    class_type: uran_worker_adapter/WorkerProtocolPlugin
+    api_version: "2.1"
+    priority: 100
+    config:
+      request_timeout_ms: 15000
+      command:
+        - /SDCARD/URAN/current/runtime/bin/uran-mqtt-worker
+      working_directory: /SDCARD/URAN/current
+      state_subscriptions: [""]
+      worker_config:
+        device_id: device_001
+        template_id: template_001
+        tenant_id: default
+        auth:
+          username_env: URAN_MQTT_USERNAME
+          token_env: URAN_MQTT_TOKEN
+        mqtt:
+          enabled: true
+          broker_host: 43.138.18.163
+          broker_port: 1884
+          keepalive: 60
+          topic_prefix: /oivs/{tenant_id}/{device_id}
+        registration:
+          require_response: false
+          legacy_online_on_timeout: true
+        transport_enabled: true
+        default_component_id: base
+        command_validity_s: 1.0
+        heartbeat_interval_s: 5.0
+        report_on_change: true
+        failsafe_targets:
+          - device_id: device_001
+            component_id: base
+            instance_id: cyberdog2_motion
+            capability_id: motion.base.safety
+
+  - instance_id: cyberdog2_motion
+    device_id: device_001
+    component_id: base
+    plugin_type: worker
+    class_type: uran_worker_adapter/WorkerProcessPlugin
+    api_version: "2.1"
+    priority: 100
+    config:
+      request_timeout_ms: 15000
+      command:
+        - /SDCARD/URAN/current/runtime/bin/uran-cyberdog2-worker
+      working_directory: /SDCARD/URAN/current
+      message_types:
+        - uran.motion.command.v1
+      capabilities:
+        - motion.base.velocity
+        - motion.base.posture
+        - motion.base.safety
+      worker_config:
+        backend: cyberdog2_ros2
+        device_id: device_001
+        component_id: base
+        namespace: /mi_desktop_48_b0_2d_5f_b6_d0
+        node_name: uran_cyberdog2_motion
+        bms_status_topic: bms_status
+        servo_publish_hz: 20.0
+        cmd_timeout_s: 0.2
+        idle_to_stand_timeout_s: 1.5
+        auto_stand_retry_interval_s: 10.0
+        zero_velocity_epsilon: 0.02
+        charging_recover_timeout_s: 1.0
+        failsafe_timeout_s: 5.0
+        failsafe_recover_delay_s: 2.0
+        state_reporting: true
+
+  - instance_id: media_transport
+    device_id: device_001
+    component_id: media
+    plugin_type: worker
+    class_type: uran_worker_adapter/WorkerProcessPlugin
+    api_version: "2.1"
+    priority: 80
+    config:
+      request_timeout_ms: 15000
+      command:
+        - /SDCARD/URAN/current/runtime/bin/uran-media-worker
+      working_directory: /SDCARD/URAN/current
+      message_types:
+        - uran.media.session-command.v1
+      capabilities:
+        - media.session
+        - media.webrtc
+        - media.rtsp
+      worker_config:
+        backend: ros2
+        node_name: uran_media
+        camera:
+          type: cyberdog2
+          service_name: /mi_desktop_48_b0_2d_5f_b6_d0/camera_service
+          image_topic: /mi_desktop_48_b0_2d_5f_b6_d0/image
+          width: 1280
+          height: 960
+          fps: 10
+        webrtc:
+          implementation: cyberdog2
+          signal_in_topic: /mi_desktop_48_b0_2d_5f_b6_d0/img_trans_signal_in
+          signal_out_topic: /mi_desktop_48_b0_2d_5f_b6_d0/img_trans_signal_out
+        rtsp:
+          port: 8554
+        channel_metadata:
+          front_cam:
+            source_type: ros_topic
+            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/image
+          cyberdog_main:
+            source_type: camera_service
+            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/image
+          realsense_left:
+            source_type: realsense_lifecycle
+            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/camera/infra1/image_rect_raw
+          realsense_right:
+            source_type: realsense_lifecycle
+            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/camera/infra2/image_rect_raw
+          realsense_depth:
+            source_type: realsense_lifecycle
+            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/camera/depth/image_rect_raw
+          realsense_aligned:
+            source_type: realsense_lifecycle
+            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/camera/aligned_depth_to_infra1/image_raw
+          realsense_aligned_rgb:
+            source_type: realsense_lifecycle
+            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/camera/aligned_depth_to_rgb/image_raw
