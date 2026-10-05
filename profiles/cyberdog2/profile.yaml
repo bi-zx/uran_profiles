@@ -22,6 +22,9 @@ components:
   - component_id: media
     kind: service
     instance: media_transport
+  - component_id: arm
+    kind: arm
+    motion_instance: so101_arm
 motion:
   backend: cyberdog2_ros2
   namespace: /mi_desktop_48_b0_2d_5f_b6_d0

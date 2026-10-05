@@ -136,3 +136,36 @@ plugins:
           realsense_aligned_rgb:
             source_type: realsense_lifecycle
             ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/camera/aligned_depth_to_rgb/image_raw
+
+  - instance_id: so101_arm
+    device_id: device_001
+    component_id: arm
+    plugin_type: worker
+    class_type: uran_worker_adapter/WorkerProcessPlugin
+    api_version: "2.1"
+    priority: 90
+    config:
+      request_timeout_ms: 15000
+      command:
+        - /SDCARD/URAN/current/runtime/bin/uran-so101-worker
+      working_directory: /SDCARD/URAN/current
+      message_types:
+        - uran.motion.command.v1
+      capabilities:
+        - motion.arm.joints
+        - motion.arm.pose
+        - motion.arm.safety
+      worker_config:
+        backend: so101_feetech
+        device_id: device_001
+        component_id: arm
+        # Replace auto with the stable /dev/serial/by-id path once probed.
+        serial_port: auto
+        baudrate: 1000000
+        calibration_file: /SDCARD/URAN/current/source/uran_profiles/profiles/cyberdog2/arm/uran_arm_calibration.yaml
+        safety_range_file: /SDCARD/URAN/current/source/uran_plugins/motion/so101/config/so101_follower_com9.json
+        urdf_path: /SDCARD/URAN/current/source/uran_plugins/motion/so101/config/so101_chain.urdf
+        safety_range_scale: 0.82
+        enable_torque_on_start: false
+        allow_motion: true
+        state_reporting: true

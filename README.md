@@ -5,9 +5,9 @@ the identity and network contract from the original `/SDCARD/uran_ws`; it does
 not contain credentials or vendor source code. The temporary `/SDCARD/ARM`
 workspace is deliberately not referenced.
 
-The first profile exposes one physical motion component, `base`. Communication
-and media are service components; no SO-ARM instance or arm capability is
-declared anywhere in the assembly.
+The profile exposes the CyberDog2 `base` and SO101 `arm` motion components.
+Communication and media remain service components. The arm worker reads its
+serial device, calibration file, and LeRobot safety range from `runtime.yaml`.
 
 ## Layout
 
@@ -16,6 +16,7 @@ profiles/cyberdog2/
 ├── profile.yaml
 ├── runtime.yaml
 ├── media.yaml
+├── arm/uran_arm_calibration.yaml
 ├── services/uran-cyberdog2.service
 └── checks/healthcheck.py
 scripts/

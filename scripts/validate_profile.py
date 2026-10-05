@@ -39,9 +39,8 @@ def main(argv):
     components = [item.get("component_id") for item in profile.get("components", [])]
     if "base" not in components:
         fail("base component is missing")
-    if any("arm" in str(item).lower() or "soarm" in str(item).lower()
-           for item in components):
-        fail("SO-ARM must not be in this profile")
+    if "arm" not in components:
+        fail("arm component is missing")
     plugins = runtime.get("plugins") or []
     ids = [item.get("instance_id") for item in plugins]
     if len(ids) != len(set(ids)):
@@ -49,12 +48,15 @@ def main(argv):
     motion = [item for item in plugins if item.get("instance_id") == "cyberdog2_motion"]
     if len(motion) != 1 or motion[0].get("component_id") != "base":
         fail("CyberDog2 motion must target component base")
-    if any("arm" in str(item).lower() or "soarm" in str(item).lower()
-           for item in plugins):
-        fail("SO-ARM plugin is forbidden")
+    arms = [item for item in plugins if item.get("instance_id") == "so101_arm"]
+    if len(arms) != 1 or arms[0].get("component_id") != "arm":
+        fail("SO101 arm plugin must target component arm")
+    arm_config = ((arms[0].get("config") or {}).get("worker_config") or {})
+    if arm_config.get("serial_port") in (None, ""):
+        fail("SO101 serial_port must be present in worker_config")
     if not runtime.get("plugin_manifests"):
         fail("plugin_manifests is required")
-    print("profile OK: %s (%d plugins, base only)" %
+    print("profile OK: %s (%d plugins, base and arm)" %
           (profile.get("profile_version", "unknown"), len(plugins)))
     return 0
 

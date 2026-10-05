@@ -1,0 +1,9 @@
+enabled: false
+version: 1
+joints:
+  shoulder_pan: {id: 1, raw_center: 1996, raw_min: null, raw_max: null, direction: 1}
+  shoulder_lift: {id: 2, raw_center: 1817, raw_min: null, raw_max: null, direction: 1}
+  elbow_flex: {id: 3, raw_center: 2050, raw_min: null, raw_max: null, direction: 1}
+  wrist_flex: {id: 4, raw_center: 1912, raw_min: null, raw_max: null, direction: 1}
+  wrist_roll: {id: 5, raw_center: 2009, raw_min: null, raw_max: null, direction: 1}
+  gripper: {id: 6, raw_center: 1462, raw_min: null, raw_max: null, direction: 1}
