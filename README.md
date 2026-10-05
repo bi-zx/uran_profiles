@@ -6,7 +6,7 @@ not contain credentials or vendor source code. The temporary `/SDCARD/ARM`
 workspace is deliberately not referenced.
 
 The profile exposes the CyberDog2 `base` and SO101 `arm` motion components.
-Communication and media remain service components. The arm worker reads its
+Communication and media remain service instances. The arm worker reads its
 serial device, calibration file, and LeRobot safety range from `runtime.yaml`.
 
 ## Layout
