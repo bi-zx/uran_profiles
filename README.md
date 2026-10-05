@@ -28,14 +28,13 @@ scripts/
 deployment. MQTT credentials are read from `config/secrets.env`, which is
 created on the device from the original workspace and is never committed.
 
-The arm currently uses `/dev/ttyACM0`. Media loads STUN, TURN credentials and
-the original video source declarations from
-`/SDCARD/uran_ws/src/uran_media/config/media.yaml` via `source_config_file`.
-The profile preserves the original channel metadata (absolute ROS topics
+The arm currently uses `/dev/ttyACM0`. Media keeps the original STUN, TURN and
+video source declarations directly in `runtime.yaml`; it does not read another
+workspace at runtime. The profile preserves the original channel metadata (absolute ROS topics
 remain absolute; relative CyberDog topics remain relative).
 The current CyberDog2 WebRTC bridge delegates ICE to the vendor
-`image_transmission` node, so importing these settings does not change that
-node's ICE servers. Channel metadata alone does not activate independent
+`image_transmission` node, so the inline ICE settings are retained for
+software backends but do not change that node's ICE servers. Channel metadata alone does not activate independent
 camera subscriptions; the current worker still uses its configured main
 CyberDog camera source.
 

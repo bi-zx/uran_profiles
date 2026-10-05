@@ -101,7 +101,6 @@ plugins:
       worker_config:
         backend: ros2
         node_name: uran_media
-        source_config_file: /SDCARD/uran_ws/src/uran_media/config/media.yaml
         camera:
           type: cyberdog2
           service_name: /mi_desktop_48_b0_2d_5f_b6_d0/camera_service
@@ -111,6 +110,12 @@ plugins:
           fps: 10
         webrtc:
           implementation: cyberdog2
+          stun_server: stun:stun.l.google.com:19302
+          turn_servers:
+            - url: turn:your-turn-server.example.com:3478
+              username: your_username
+              credential: your_password
+          max_reconnect_attempts: 3
           signal_in_topic: /mi_desktop_48_b0_2d_5f_b6_d0/img_trans_signal_in
           signal_out_topic: /mi_desktop_48_b0_2d_5f_b6_d0/img_trans_signal_out
         rtsp:
