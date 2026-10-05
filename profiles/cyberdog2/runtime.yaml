@@ -101,6 +101,7 @@ plugins:
       worker_config:
         backend: ros2
         node_name: uran_media
+        source_config_file: /SDCARD/uran_ws/src/uran_media/config/media.yaml
         camera:
           type: cyberdog2
           service_name: /mi_desktop_48_b0_2d_5f_b6_d0/camera_service
@@ -117,25 +118,48 @@ plugins:
         channel_metadata:
           front_cam:
             source_type: ros_topic
-            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/image
+            ros_topic: /camera/image_raw
+            msg_type: sensor_msgs/Image
+            encoding: bgr8
+            fps: 30
           cyberdog_main:
             source_type: camera_service
-            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/image
+            camera_service_name: camera_service
+            ros_topic: image
+            msg_type: sensor_msgs/Image
+            width: 1280
+            height: 960
+            fps: 10
           realsense_left:
             source_type: realsense_lifecycle
-            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/camera/infra1/image_rect_raw
+            lifecycle_node: /camera/camera
+            ros_topic: /camera/infra1/image_rect_raw
+            msg_type: sensor_msgs/Image
+            fps: 30
           realsense_right:
             source_type: realsense_lifecycle
-            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/camera/infra2/image_rect_raw
+            lifecycle_node: /camera/camera
+            ros_topic: /camera/infra2/image_rect_raw
+            msg_type: sensor_msgs/Image
+            fps: 30
           realsense_depth:
             source_type: realsense_lifecycle
-            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/camera/depth/image_rect_raw
+            lifecycle_node: /camera/camera
+            ros_topic: /camera/depth/image_rect_raw
+            msg_type: sensor_msgs/Image
+            fps: 30
           realsense_aligned:
             source_type: realsense_lifecycle
-            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/camera/aligned_depth_to_infra1/image_raw
+            lifecycle_node: /camera/camera
+            ros_topic: /camera/aligned_depth_to_infra1/image_raw
+            msg_type: sensor_msgs/Image
+            fps: 30
           realsense_aligned_rgb:
             source_type: realsense_lifecycle
-            ros_topic: /mi_desktop_48_b0_2d_5f_b6_d0/camera/aligned_depth_to_rgb/image_raw
+            lifecycle_node: /camera/camera
+            ros_topic: /camera/aligned_depth_to_rgb/image_raw
+            msg_type: sensor_msgs/Image
+            fps: 30
 
   - instance_id: so101_arm
     device_id: device_001
@@ -159,8 +183,8 @@ plugins:
         backend: so101_feetech
         device_id: device_001
         component_id: arm
-        # Replace auto with the stable /dev/serial/by-id path once probed.
-        serial_port: auto
+        # Temporary serial device; replace with a persistent by-id path when available.
+        serial_port: /dev/ttyACM0
         baudrate: 1000000
         calibration_file: /SDCARD/URAN/current/source/uran_profiles/profiles/cyberdog2/arm/uran_arm_calibration.yaml
         safety_range_file: /SDCARD/URAN/current/source/uran_plugins/motion/so101/config/so101_follower_com9.json
