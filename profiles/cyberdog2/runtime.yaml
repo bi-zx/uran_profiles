@@ -36,6 +36,7 @@ plugins:
           legacy_online_on_timeout: true
         transport_enabled: true
         default_component_id: base
+        media_component_id: media
         command_validity_s: 1.0
         heartbeat_interval_s: 5.0
         report_on_change: true
