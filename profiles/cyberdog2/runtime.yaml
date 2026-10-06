@@ -106,6 +106,7 @@ plugins:
           type: cyberdog2
           # image_transmission owns camera activation for WebRTC bridge.
           activate_service: false
+          namespace: /mi_desktop_48_b0_2d_5f_b6_d0
           service_name: /mi_desktop_48_b0_2d_5f_b6_d0/camera_service
           image_topic: /mi_desktop_48_b0_2d_5f_b6_d0/image
           width: 1280
