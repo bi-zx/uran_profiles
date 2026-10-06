@@ -28,7 +28,8 @@ scripts/
 deployment. MQTT credentials are read from `config/secrets.env`, which is
 created on the device from the original workspace and is never committed.
 
-The arm currently uses `/dev/ttyACM0`. Media keeps the original STUN, TURN and
+The arm uses the persistent USB identity path
+`/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B79017505-if00`. Media keeps the original STUN, TURN and
 video source declarations directly in `runtime.yaml`; it does not read another
 workspace at runtime. The profile preserves the original channel metadata (absolute ROS topics
 remain absolute; relative CyberDog topics remain relative).

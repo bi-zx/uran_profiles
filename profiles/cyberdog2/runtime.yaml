@@ -192,8 +192,7 @@ plugins:
         backend: so101_feetech
         device_id: device_001
         component_id: arm
-        # Temporary serial device; replace with a persistent by-id path when available.
-        serial_port: /dev/ttyACM0
+        serial_port: /dev/serial/by-id/usb-1a86_USB_Single_Serial_5B79017505-if00
         baudrate: 1000000
         calibration_file: /SDCARD/URAN/current/source/uran_profiles/profiles/cyberdog2/arm/uran_arm_calibration.yaml
         safety_range_file: /SDCARD/URAN/current/source/uran_plugins/motion/so101/config/so101_follower_com9.json
