@@ -144,30 +144,40 @@ plugins:
             lifecycle_node: /camera/camera
             ros_topic: /camera/infra1/image_rect_raw
             msg_type: sensor_msgs/Image
+            width: 640
+            height: 480
             fps: 30
           realsense_right:
             source_type: realsense_lifecycle
             lifecycle_node: /camera/camera
             ros_topic: /camera/infra2/image_rect_raw
             msg_type: sensor_msgs/Image
+            width: 640
+            height: 480
             fps: 30
           realsense_depth:
             source_type: realsense_lifecycle
             lifecycle_node: /camera/camera
             ros_topic: /camera/depth/image_rect_raw
             msg_type: sensor_msgs/Image
+            width: 640
+            height: 480
             fps: 30
           realsense_aligned:
             source_type: realsense_lifecycle
             lifecycle_node: /camera/camera
             ros_topic: /camera/aligned_depth_to_infra1/image_raw
             msg_type: sensor_msgs/Image
+            width: 640
+            height: 480
             fps: 30
           realsense_aligned_rgb:
             source_type: realsense_lifecycle
             lifecycle_node: /camera/camera
             ros_topic: /camera/aligned_depth_to_rgb/image_raw
             msg_type: sensor_msgs/Image
+            width: 640
+            height: 480
             fps: 30
 
   - instance_id: so101_arm
