@@ -31,6 +31,7 @@ cp "$RELEASE/source/uran_profiles/scripts/uran-cyberdog2-worker" "$RELEASE/runti
 cp "$RELEASE/source/uran_profiles/scripts/uran-media-worker" "$RELEASE/runtime/bin/"
 cp "$RELEASE/source/uran_profiles/scripts/uran-so101-worker" "$RELEASE/runtime/bin/"
 cp "$RELEASE/source/uran_profiles/scripts/uran-so101-calibrate" "$RELEASE/runtime/bin/"
+mkdir -p "$RELEASE/source/uran_profiles/tools"
 cp "$RELEASE/source/uran_profiles/scripts/worker-env.sh" "$RELEASE/runtime/bin/"
 cp "$RELEASE/source/uran_profiles/scripts/start-cyberdog2.sh" "$RELEASE/runtime/bin/"
 chmod 755 "$RELEASE/runtime/bin"/*

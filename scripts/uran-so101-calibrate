@@ -1,5 +1,4 @@
 #!/bin/bash
 set -eu
 . "$(dirname "$0")/worker-env.sh"
-export PYTHONPATH="$URAN_ROOT/source/uran_plugins/motion/so101/src:${PYTHONPATH:-}"
-exec /usr/bin/python3 -m uran_so101_plugin.calibrate "$@"
+exec /usr/bin/python3 "$URAN_ROOT/source/uran_profiles/tools/calibrate_so101.py" "$@"

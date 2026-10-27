@@ -16,7 +16,7 @@ profiles/cyberdog2/
 ├── profile.yaml
 ├── runtime.yaml
 ├── media.yaml
-├── arm/uran_arm_calibration.yaml
+├── arm/so101_follower_arm.json
 ├── services/uran-cyberdog2.service
 └── checks/healthcheck.py
 scripts/
@@ -67,3 +67,11 @@ python3 scripts/validate_profile.py profiles/cyberdog2
 
 The target launcher performs the same check, verifies ROS and vendor topics,
 and starts the new runtime without stopping the old workspace.
+
+## SO101 无 Placo 控制
+
+CyberDog2 profile 使用 20 Hz 的位置/姿态 DLS 控制器、0.2 s 速度命令看门狗和 STL 派生自碰撞包络。直接读取已完成的 `arm/so101_follower_arm.json`；不再叠加其他机械臂的 COM9 标定。算法、诊断方法和验证边界见相邻仓库 `uran_plugins/motion/so101/README.md`。
+
+`component.arm.control.status.motion_ready` 与 `readiness_error` 可判断起始关节姿态是否满足实际生效限位。默认是 URDF 与标定交集；当前 profile 仅将 `shoulder_lift` 配置为使用已完成标定的约 −114.77°～114.77°范围。服务 active 不能代替此检查。发送普通速度控制时，未使用的 `target_roll/pitch/yaw` 应设为 `null`。首次运动前需要确认供电稳定和起始姿态合法。
+
+电压偶发告警支持自动恢复：`voltage_auto_recovery: true`，每 0.5 秒读取六轴，连续 3 次无告警后恢复接收新指令。恢复不执行旧目标或自动开启扭矩；急停、过热/过载、串口错误等不自动解除。进度与累计恢复次数见 `component.arm.control.status.voltage_recovery`。

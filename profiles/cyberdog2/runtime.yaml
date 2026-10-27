@@ -35,6 +35,7 @@ plugins:
           require_response: false
           legacy_online_on_timeout: true
         transport_enabled: true
+        component_types: {base: base, arm: arm}
         default_component_id: base
         media_component_id: media
         command_validity_s: 1.0
@@ -45,6 +46,10 @@ plugins:
             component_id: base
             instance_id: cyberdog2_motion
             capability_id: motion.base.safety
+          - device_id: device_001
+            component_id: arm
+            instance_id: so101_arm
+            capability_id: motion.arm.safety
 
   - instance_id: cyberdog2_motion
     device_id: device_001
@@ -195,8 +200,9 @@ plugins:
       message_types:
         - uran.motion.command.v1
       capabilities:
-        - motion.arm.joints
+        - motion.arm.cartesian_velocity
         - motion.arm.pose
+        - motion.gripper.action
         - motion.arm.safety
       worker_config:
         backend: so101_feetech
@@ -204,10 +210,31 @@ plugins:
         component_id: arm
         serial_port: /dev/serial/by-id/usb-1a86_USB_Single_Serial_5B79017505-if00
         baudrate: 1000000
-        calibration_file: /SDCARD/URAN/current/source/uran_profiles/profiles/cyberdog2/arm/uran_arm_calibration.yaml
-        safety_range_file: /SDCARD/URAN/current/source/uran_plugins/motion/so101/config/so101_follower_com9.json
-        urdf_path: /SDCARD/URAN/current/source/uran_plugins/motion/so101/config/so101_chain.urdf
-        safety_range_scale: 0.82
+        calibration_file: /SDCARD/URAN/current/source/uran_profiles/profiles/cyberdog2/arm/so101_follower_arm.json
+        urdf_path: /SDCARD/URAN/current/source/uran_plugins/motion/so101/config/so101_collision.urdf
+        collision_model: /SDCARD/URAN/current/source/uran_plugins/motion/so101/config/collision_capsules.json
+        # SO101-specific algorithms and limits belong to this plugin/profile.
+        control_hz: 20.0
+        command_timeout_s: 0.2
+        max_joint_step_degrees: 3.0
+        joint_speed_deg_s: 60.0
+        gripper_speed_percent_s: 150.0
+        velocity_filter_tau_s: 0.07
+        orientation_weight: 0.005
+        ik_max_iterations: 12
+        ik_damping: 0.01
+        max_linear_mps: 0.05
+        max_angular_rps: 0.5
+        max_tracking_error_m: 0.02
+        workspace_m: [[-0.35, 0.35], [-0.35, 0.35], [-0.2, 0.45]]
+        collision_margin_m: 0.0
+        safety_range_scale: 1.0
+        # This robot's measured shoulder travel exceeds the reference URDF.
+        # Use its calibrated encoder bounds for this joint (about +/-114.77 deg).
+        calibrated_limit_joints: [shoulder_lift]
+        voltage_auto_recovery: true
+        voltage_recovery_interval_s: 0.5
+        voltage_recovery_healthy_samples: 3
         enable_torque_on_start: false
         allow_motion: true
         state_reporting: true
