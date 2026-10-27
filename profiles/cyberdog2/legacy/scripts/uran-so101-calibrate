@@ -1,0 +1,8 @@
+#!/bin/bash
+set -eu
+. "$(dirname "$0")/worker-env.sh"
+export PYTHONPATH="$URAN_ROOT/source/uran_plugins/motion/so101/src:${PYTHONPATH:-}"
+exec /usr/bin/python3 -m uran_so101_plugin.calibrate_lerobot \
+  --port /dev/serial/by-id/usb-1a86_USB_Single_Serial_5B79017505-if00 \
+  --output "$URAN_ROOT/source/uran_profiles/profiles/cyberdog2/arm/so101_follower_arm.json" \
+  "$@"

@@ -3,8 +3,11 @@ set -e
 
 # Run on CyberDog2 as user mi. The old /SDCARD/uran_ws is read-only input;
 # /SDCARD/ARM is intentionally never consulted.
-PROFILE_DIR="$(cd "$(dirname "$0")/../profiles/cyberdog2" && pwd)"
 ROOT="${URAN_DEPLOY_ROOT:-/SDCARD/URAN}"
+if [ -f "$ROOT/active.json" ]; then
+  echo "managed URAN deployment detected; submit a signed release through Core instead" >&2
+  exit 2
+fi
 VERSION="${URAN_PROFILE_VERSION:-cyberdog2-0.1.0}"
 RELEASE="$ROOT/releases/$VERSION"
 
@@ -26,14 +29,11 @@ for repo in uran_framework uran_interfaces uran_plugins uran_ros2_adapter uran_p
   copy_tree "$repo"
 done
 
-cp "$RELEASE/source/uran_profiles/scripts/uran-mqtt-worker" "$RELEASE/runtime/bin/"
-cp "$RELEASE/source/uran_profiles/scripts/uran-cyberdog2-worker" "$RELEASE/runtime/bin/"
-cp "$RELEASE/source/uran_profiles/scripts/uran-media-worker" "$RELEASE/runtime/bin/"
-cp "$RELEASE/source/uran_profiles/scripts/uran-so101-worker" "$RELEASE/runtime/bin/"
-cp "$RELEASE/source/uran_profiles/scripts/uran-so101-calibrate" "$RELEASE/runtime/bin/"
-mkdir -p "$RELEASE/source/uran_profiles/tools"
-cp "$RELEASE/source/uran_profiles/scripts/worker-env.sh" "$RELEASE/runtime/bin/"
-cp "$RELEASE/source/uran_profiles/scripts/start-cyberdog2.sh" "$RELEASE/runtime/bin/"
+RELEASE_PROFILE="$RELEASE/source/uran_profiles/profiles/cyberdog2"
+for launcher in uran-mqtt-worker uran-cyberdog2-worker uran-media-worker \
+                uran-so101-worker uran-so101-calibrate worker-env.sh start-cyberdog2.sh; do
+  cp "$RELEASE_PROFILE/legacy/scripts/$launcher" "$RELEASE/runtime/bin/"
+done
 chmod 755 "$RELEASE/runtime/bin"/*
 
 umask 077
@@ -65,7 +65,8 @@ cp "$RELEASE/config/secrets.env" "$ROOT/config/secrets.env"
 chmod 600 "$ROOT/config/secrets.env"
 
 python3 "$RELEASE/source/uran_profiles/scripts/validate_profile.py" \
-  "$RELEASE/source/uran_profiles/profiles/cyberdog2"
+  "$RELEASE_PROFILE"
+python3 "$RELEASE_PROFILE/checks/validate_legacy.py" "$RELEASE_PROFILE"
 
 echo "building uran_framework"
 export COLCON_TRACE="${COLCON_TRACE:-}"

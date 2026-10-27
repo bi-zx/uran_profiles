@@ -1,4 +1,0 @@
-#!/bin/bash
-set -eu
-. "$(dirname "$0")/worker-env.sh"
-exec /usr/bin/python3 "$URAN_ROOT/source/uran_profiles/tools/calibrate_so101.py" "$@"

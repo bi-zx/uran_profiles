@@ -2,6 +2,10 @@
 set -e
 
 URAN_ROOT="${URAN_ROOT:-/SDCARD/URAN/current}"
+if [ -f "$(dirname "$URAN_ROOT")/active.json" ]; then
+  echo "managed URAN deployment detected; uran-supervisor owns the Runtime" >&2
+  exit 2
+fi
 export URAN_ROOT
 export ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-42}"
 export COLCON_TRACE="${COLCON_TRACE:-}"
