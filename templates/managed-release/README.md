@@ -2,7 +2,7 @@
 
 此模板用于新部署器。`runtime.json` 是空产品装配；Core 管理 worker 和云端连接由设备管理底座注入，不在产品包中重复声明。
 
-发行端先把安装后的 SDK、插件 wheel/二进制、资源和 worker 入口组成一个目录，再使用 `scripts/build_release.py` 调用安装后的 `uran-deploy build-release`。发行规格参考 framework 的 `config/deployment/release-spec.example.json`；包版本、来源和摘要必须填写真实值。
+发行端先用 `scripts/assemble_release.py` 把安装后的 SDK、插件 wheel、资源和 worker 入口组成一个目录（见仓库 README“通用工具”），再使用 `scripts/build_release.py` 调用安装后的 `uran-deploy build-release`。发行规格参考 framework 的 `config/deployment/release-spec.example.json`；包版本、来源和摘要必须填写真实值。
 
 路径使用 `${release}` 引用当前不可变发行目录、`${device_id}` 引用设备身份、`${data}` 引用可备份的运行状态、`${shared}` 引用现场持久化数据。标定文件例如 `${shared}/calibration/so101_follower_arm.json`，不打入发行包。插件实例不能使用保留名称 `uran_management`、`uran_cloud`、`uran_runtime`。
 
