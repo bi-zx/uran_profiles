@@ -133,6 +133,7 @@ def install_wheels(target, wheels, wheelhouse, installer, uv):
 
 
 LAUNCHER = ("#!/usr/bin/env python3\nimport pathlib, sys\n"
+            "sys.dont_write_bytecode = True\n"
             "sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / 'python'))\n"
             "from %s import %s\nraise SystemExit(%s())\n")
 
