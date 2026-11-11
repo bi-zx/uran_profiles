@@ -217,3 +217,83 @@ def test_build_release_round_trip_passes_device_side_validation(workspace):
         validate_release(staging, release, {})
     with tarfile.open(str(archive)) as bundle:
         assert "deployment.lock.json" in bundle.getnames()
+
+
+def native_prefix(root, name="uran_demo_plugin", class_type="uran_demo_plugin/DemoMotionPlugin"):
+    """A CMake install prefix of a native plugin: lib/<library> and share/<package>/plugin.json."""
+    prefix = root / ("install-" + name)
+    (prefix / "lib").mkdir(parents=True)
+    (prefix / "lib" / ("lib%s.so" % name)).write_bytes(b"\x7fELF-plugin")
+    (prefix / "include").mkdir()
+    (prefix / "include/header.hpp").write_text("// not packaged\n")
+    (prefix / "share" / name).mkdir(parents=True)
+    (prefix / "share" / name / "plugin.json").write_text(json.dumps(
+        {"schema_version": 1, "package": name, "version": "0.1.0", "api_version": "2.1",
+         "plugins": [{"class_type": class_type, "library": "../../lib/lib%s.so" % name}]}))
+    return prefix
+
+
+def native_workspace(workspace):
+    """The demo product as a native plugin: no wheel, a packaged manifest and a native class."""
+    prefix = native_prefix(workspace["root"])
+    runtime = json.loads((workspace["profile"] / "runtime.json").read_text())
+    runtime["plugin_manifests"] = ["${release}/share/uran_demo_plugin/plugin.json"]
+    runtime["plugins"][0].update(plugin_type="motion", class_type="uran_demo_plugin/DemoMotionPlugin",
+                                 config={"backend": "simulation", "capabilities": ["motion.base.velocity"]})
+    (workspace["profile"] / "runtime.json").write_text(json.dumps(runtime))
+    (workspace["profile"] / "bin/uran-demo-worker").unlink()
+    return prefix
+
+
+def run_native(workspace, *extra):
+    out = workspace["root"] / "assembly"
+    spec_out = workspace["root"] / "spec.json"
+    code = assembler.main([str(workspace["profile"]), "--sdk-prefix", str(workspace["sdk"]), "--sdk-version", "2.1.0",
+                           "--sdk-ref", "uran_framework@test", "--output", str(out), "--spec-out", str(spec_out),
+                           "--release-id", "demo_robot-0.1.0"] + list(extra))
+    return code, out, json.loads(spec_out.read_text())
+
+
+def test_native_package_is_copied_with_provenance(workspace):
+    prefix = native_workspace(workspace)
+    code, out, release_spec = run_native(workspace, "--native", "uran-demo-plugin=0.1.0=%s" % prefix)
+    assert code == 0
+    assert (out / "lib/liburan_demo_plugin.so").is_file() and (out / "share/uran_demo_plugin/plugin.json").is_file()
+    assert not (out / "include").exists() and not (out / "python").exists()
+    packages = {item["package"]: item for item in release_spec["packages"]}
+    assert set(packages) == {"uran-framework", "uran-demo-plugin"}
+    assert packages["uran-demo-plugin"]["origin"] == "native:uran-demo-plugin@0.1.0"
+    assert len(packages["uran-demo-plugin"]["sha256"]) == 64
+
+
+def test_native_files_may_not_overwrite_sdk_files(workspace):
+    prefix = native_workspace(workspace)
+    (prefix / "lib/liburan_core.so.2").write_bytes(b"\x7fELF-other")
+    with pytest.raises(SystemExit, match="collides"):
+        run_native(workspace, "--native", "uran-demo-plugin=0.1.0=%s" % prefix)
+
+
+def test_runtime_manifest_must_be_packaged(workspace):
+    native_workspace(workspace)
+    other = native_prefix(workspace["root"], name="uran_other_plugin")
+    with pytest.raises(SystemExit, match="plugin manifest"):
+        run_native(workspace, "--native", "uran-other-plugin=0.1.0=%s" % other)
+
+
+def test_release_needs_a_product_package(workspace):
+    native_workspace(workspace)
+    with pytest.raises(SystemExit, match="at least one"):
+        run_native(workspace)
+
+
+@pytest.mark.skipif(importlib.util.find_spec("uran_deploy") is None, reason="uran_deploy is required")
+def test_native_assembly_passes_the_deploy_engine_check(workspace):
+    from uran_deploy.artifacts import validate_assembly
+
+    prefix = native_workspace(workspace)
+    _, out, _ = run_native(workspace, "--native", "uran-demo-plugin=0.1.0=%s" % prefix)
+    runtime = json.loads((out / "config/runtime.json").read_text())
+    validate_assembly(runtime, out)
+    (out / "lib/liburan_demo_plugin.so").unlink()
+    with pytest.raises(ValueError, match="library is missing"):
+        validate_assembly(runtime, out)

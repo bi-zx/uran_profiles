@@ -12,6 +12,8 @@ same platform check as the device.
 Layout produced (the same as the bootstrap seed release plus product files)::
 
     bin/uran_runtime, lib/*.so*, share/uran_framework/plugins/worker/plugin.json   framework SDK
+    lib/*.so*, share/<package>/   native packages (--native): CMake install prefixes of C++ plugins
+                                  and their packaged libraries, e.g. the uran_interfaces C++ binding
     python/                       wheels installed with --target, offline from a wheelhouse
     bin/<console scripts>         launchers generated from the product wheels' console_scripts
     bin/<launchers>               Profile bin/ (executable; a same-named file overrides the generated one)
@@ -117,6 +119,28 @@ def copy_sdk(sdk, out):
     return hashlib.sha256(lines.encode("utf-8")).hexdigest()
 
 
+def copy_native(prefix, out):
+    """Copy lib/*.so* and share/** of one CMake install prefix; returns the digest of the copied files."""
+    if not prefix.is_dir():
+        raise ValueError("native prefix %s does not exist" % prefix)
+    copied = []
+    sources = [path for path in sorted((prefix / "lib").glob("*.so*")) if path.is_file()]
+    share = prefix / "share"
+    sources += [path for path in sorted(share.rglob("*")) if path.is_file()] if share.is_dir() else []
+    if not sources:
+        raise ValueError("native prefix %s has no lib/*.so* or share/ files" % prefix)
+    for path in sources:
+        relative = Path("lib") / path.name if path.parent == prefix / "lib" else path.relative_to(prefix)
+        target = out / relative
+        if target.exists():
+            raise ValueError("native file collides with another release file: %s" % relative.as_posix())
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(str(path.resolve()), str(target))   # symbolic links become regular files
+        copied.append(target)
+    lines = "".join("%s  %s\n" % (sha256(path), path.relative_to(out).as_posix()) for path in sorted(copied))
+    return hashlib.sha256(lines.encode("utf-8")).hexdigest()
+
+
 def install_wheels(target, wheels, wheelhouse, installer, uv):
     if installer == "uv":
         command = [uv, "pip", "install", "--python", sys.executable, "--no-index", "--find-links", str(wheelhouse),
@@ -142,6 +166,8 @@ def generate_launchers(out, product_wheels):
     """Write bin/<name> for every console script of the product (not dependency) distributions."""
     products = {normalize(wheel.name.split("-")[0]) for wheel in product_wheels}
     generated = {}
+    if not product_wheels:
+        return generated
     for dist in sorted((out / "python").glob("*.dist-info")):
         with open(str(dist / "METADATA"), "r", encoding="utf-8") as handle:
             if normalize(HeaderParser().parse(handle)["Name"]) not in products:
@@ -238,6 +264,9 @@ def refuse_sensitive(out):
 
 def check_references(out, runtime, spec):
     warnings = []
+    for manifest in runtime.get("plugin_manifests", []):
+        if not str(manifest).startswith("${release}/") or not (out / manifest[len("${release}/"):]).is_file():
+            raise ValueError("plugin manifest %s is not a file in the release" % manifest)
     for plugin in runtime.get("plugins", []):
         command = plugin.get("config", {}).get("command") or []
         if command and str(command[0]).startswith("${release}/"):
@@ -281,8 +310,10 @@ def main(argv=None):
     parser.add_argument("--sdk-prefix", required=True, help="installed framework SDK prefix")
     parser.add_argument("--sdk-version", required=True)
     parser.add_argument("--sdk-ref", required=True, help="framework version or commit recorded as package origin")
-    parser.add_argument("--wheel", action="append", required=True, help="product plugin wheel (repeatable)")
-    parser.add_argument("--wheelhouse", required=True, help="locked dependency wheels; installation is offline")
+    parser.add_argument("--wheel", action="append", default=[], help="product plugin wheel (repeatable)")
+    parser.add_argument("--wheelhouse", help="locked dependency wheels; installation is offline (needed with --wheel)")
+    parser.add_argument("--native", action="append", default=[], metavar="PACKAGE=VERSION=PREFIX",
+                        help="CMake install prefix of a native package; copies lib/*.so* and share/ (repeatable)")
     parser.add_argument("--output", required=True, help="new or empty directory outside the repository")
     parser.add_argument("--spec-out", required=True, help="release spec for build_release.py")
     parser.add_argument("--draft", help="default: <profile>/release/release-spec.draft.json")
@@ -306,6 +337,16 @@ def main(argv=None):
         draft = json.loads(draft_path.read_text(encoding="utf-8"))
         if draft.get("profile_id") != profile.name:
             raise ValueError("draft profile_id %r does not match the profile directory %r" % (draft.get("profile_id"), profile.name))
+        natives = []
+        for item in args.native:
+            parts = item.split("=", 2)
+            if len(parts) != 3 or not ID.match(parts[0]) or not ID.match(parts[1]):
+                raise ValueError("--native expects PACKAGE=VERSION=PREFIX")
+            natives.append((parts[0], parts[1], Path(parts[2]).resolve()))
+        if not args.wheel and not natives:
+            raise ValueError("a product release needs at least one --wheel or --native package")
+        if args.wheel and not args.wheelhouse:
+            raise ValueError("--wheel needs --wheelhouse")
         extras = []
         for item in args.extra:
             if "=" not in item:
@@ -314,11 +355,15 @@ def main(argv=None):
         platform_values = resolve_platform(draft.get("platform") or {}, args.platform_from_build_env)
         out.mkdir(parents=True, exist_ok=True)
         sdk_digest = copy_sdk(Path(args.sdk_prefix), out)
-        wheels = [Path(wheel).resolve() for wheel in args.wheel]
-        wheelhouse = Path(args.wheelhouse).resolve()
-        install_wheels(out / "python", wheels, wheelhouse, args.installer, args.uv)
         packages = [{"package": "uran-framework", "version": args.sdk_version, "origin": args.sdk_ref, "sha256": sdk_digest}]
-        packages += provenance(out / "python", wheels + sorted(wheelhouse.glob("*.whl")))
+        for name, version, prefix in natives:
+            packages.append({"package": name, "version": version, "origin": "native:%s@%s" % (name, version),
+                             "sha256": copy_native(prefix, out)})
+        wheels = [Path(wheel).resolve() for wheel in args.wheel]
+        if wheels:
+            wheelhouse = Path(args.wheelhouse).resolve()
+            install_wheels(out / "python", wheels, wheelhouse, args.installer, args.uv)
+            packages += provenance(out / "python", wheels + sorted(wheelhouse.glob("*.whl")))
         generated = generate_launchers(out, wheels)
         runtime, overridden = copy_profile(profile, out, extras, generated)
         refuse_sensitive(out)

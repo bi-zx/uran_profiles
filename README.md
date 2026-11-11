@@ -39,7 +39,9 @@ python3 scripts/build_release.py --help
 
 `assemble_release.py` 在发行端把 Profile、已安装的 framework SDK 和插件 wheel 组装成受控发行的输入目录：复制 SDK 运行文件（与 bootstrap seed 相同），用当前解释器从锁定的 wheelhouse 离线安装 wheel 到 `python/`，按插件 wheel 的 console script 生成 `bin/` 启动入口（Profile `bin/` 中同名文件优先），复制 `checks/` 与 `runtime.json`（到 `config/runtime.json`），并生成带包来源与摘要的发行规格。它拒绝 `.git`、`secrets.env`、`device.json`、私钥等文件，检查装配引用的启动入口和检查命令确实存在且可执行。
 
-必须在与目标完全一致的环境中运行（架构、发行版、libc，以及运行脚本的 Python 主次版本）：`build-release` 会在发行端执行与设备相同的平台检查。
+原生插件（C++，plugin API 2.1 / native ABI 3）用 `--native PACKAGE=VERSION=PREFIX` 加入：PREFIX 是 `cmake --install` 的安装前缀，工具复制其中的 `lib/*.so*` 与 `share/**`（不复制 `include/`、`lib/cmake/`），与已有文件冲突时失败，并以 `native:<包>@<版本>` 和所复制文件的摘要记录来源。插件使用 `uran_interfaces` C++ 契约校验器时，把它的安装前缀也作为一个 `--native` 包（如 `uran-interfaces-cpp`）。只有原生插件的产品可以不传 `--wheel`/`--wheelhouse`。工具还检查 `runtime.json` 的 `plugin_manifests` 都在发行目录中。
+
+必须在与目标完全一致的环境中运行（架构、发行版、libc、C++ 工具链，以及运行脚本的 Python 主次版本）：`build-release` 会在发行端执行与设备相同的平台检查。
 
 ```bash
 python3 scripts/assemble_release.py profiles/<profile_id> \
