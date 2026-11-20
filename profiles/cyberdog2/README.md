@@ -13,7 +13,7 @@ serial device, calibration file, and LeRobot safety range from `runtime.yaml`.
 
 ## 室内任务尺寸
 
-装配地图任务时，将同目录 `autotask.json` 的 `straight_drive` 和 `mapping.terrain` 合入任务实例的 `config.worker_config`。直行按机身宽 0.40 米、左右各留 0.15 米检查。原地转向按机身中心半径 0.50 米检查。已确认通行的地形格含 0.35 米的周边净空。加载 ROS、导航插件及适配器后，可执行 `python3 checks/drive_clearance.py <scan_topic> --body-frame base_link` 查看实时直行和原地转向的判定。
+装配地图任务时，将同目录 `autotask.json` 的 `straight_drive` 和 `mapping.terrain` 合入任务实例的 `config.worker_config`。任务直行巡航速度及上限均为 0.15 米/秒。测试装配的底盘前向限速读取同一上限。直行按机身宽 0.40 米、左右各留 0.15 米检查。原地转向按机身中心半径 0.50 米检查。已确认通行的地形格含 0.35 米的周边净空。加载 ROS、导航插件及适配器后，可执行 `python3 checks/drive_clearance.py <scan_topic> --body-frame base_link` 查看实时直行和原地转向的判定。
 
 ## Layout
 

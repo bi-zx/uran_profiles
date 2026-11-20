@@ -1,5 +1,7 @@
 {
   "straight_drive": {
+    "default_speed_mps": 0.15,
+    "max_speed_mps": 0.15,
     "robot_width_m": 0.40,
     "robot_length_m": 0.60,
     "safety_margin_m": 0.15,
